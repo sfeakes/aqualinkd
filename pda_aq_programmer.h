@@ -7,6 +7,7 @@ typedef enum pda_type {
   PDA
 } pda_type;
 
+void *set_aqualink_PDA_init( void *ptr );
 void *get_aqualink_PDA_device_status( void *ptr );
 void *set_aqualink_PDA_device_on_off( void *ptr );
 void *set_aqualink_PDA_wakeinit( void *ptr );
@@ -21,6 +22,8 @@ bool get_PDA_freeze_protect_temp(struct aqualinkdata *aq_data);
 bool get_PDA_aqualink_aux_labels(struct aqualinkdata *aq_data);
 
 bool set_PDA_aqualink_boost(struct aqualinkdata *aq_data, bool val);
+
+bool set_PDA_aqualink_time(struct aqualinkdata *aq_data);
 
 //void pda_programming_thread_check(struct aqualinkdata *aq_data);
 

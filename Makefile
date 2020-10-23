@@ -16,11 +16,12 @@ AQ_IAQTOUCH = true
 #AQ_MEMCMP = true // Not implimented correctly yet.
 
 # Get some system information
+ifneq ($(OS),Windows_NT)
 PI_OS_VERSION = $(shell cat /etc/os-release | grep VERSION= | cut -d\" -f2)
 $(info OS: $(PI_OS_VERSION) )
 GLIBC_VERSION = $(shell ldd --version | grep ldd)
 $(info GLIBC: $(GLIBC_VERSION) )
-
+endif
 
 # define the C compiler to use
 CC = gcc

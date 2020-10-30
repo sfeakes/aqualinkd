@@ -64,9 +64,6 @@ void *get_aqualink_aux_labels( void *ptr );
 //void *threadded_send_cmd( void *ptr );
 void *set_aqualink_light_programmode( void *ptr );
 void *set_aqualink_light_colormode( void *ptr );
-#ifdef AQ_PDA
-void *set_aqualink_PDA_init( void *ptr );
-#endif
 void *set_aqualink_SWG( void *ptr );
 void *set_aqualink_boost( void *ptr );
 /*
@@ -612,7 +609,9 @@ void aq_programmer(program_type r_type, char *args, struct aqualinkdata *aq_data
 #endif
         type != AQ_GET_POOL_SPA_HEATER_TEMPS &&
         type != AQ_SET_FRZ_PROTECTION_TEMP &&
-        type != AQ_SET_BOOST) {
+        type != AQ_SET_BOOST &&
+        type != AQ_SET_TIME) {
+
       LOG(PROG_LOG, LOG_ERR, "Selected Programming mode '%d' not supported with PDA mode control panel\n",type);
       return;
     } 
@@ -1722,6 +1721,14 @@ void *set_aqualink_time( void *ptr )
   
   waitForSingleThreadOrTerminate(threadCtrl, AQ_SET_TIME);
   //LOG(PROG_LOG, LOG_NOTICE, "Setting time on aqualink\n");
+
+#ifdef AQ_PDA
+  if (isPDA_PANEL) {
+    set_PDA_aqualink_time(aq_data);
+    cleanAndTerminateThread(threadCtrl);
+    return ptr;
+  }
+#endif
 
   time_t now = time(0);   // get time now
   struct tm *result = localtime(&now);

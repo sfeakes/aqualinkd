@@ -4,6 +4,8 @@
 
 #include <pthread.h>
 #include <stdbool.h>
+#include <time.h>
+
 #include "aq_serial.h"
 #include "aq_programmer.h"
 #include "aq_panel.h"
@@ -208,6 +210,7 @@ struct aqualinkdata
   struct timespec last_active_time;
   struct timespec start_active_time;
   #endif
+  struct tm tm;
 };
 
 

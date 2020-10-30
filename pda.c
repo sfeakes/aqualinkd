@@ -282,7 +282,31 @@ void process_pda_packet_msg_long_time(const char *msg)
     strncpy(_aqualink_data->time, msg + 9, 7);
   }
   strncpy(_aqualink_data->date, msg + 5, 3);
-  // :TODO: NSF Come back and change the above to correctly check date and time in future
+
+  time_t now;
+
+  time(&now);
+  localtime_r(&now, &_aqualink_data->tm);
+  int real_wday = _aqualink_data->tm.tm_wday;
+
+  char result[30];
+
+  if (strptime(msg, "%t%A%t%I:%M%p", &_aqualink_data->tm) == NULL) {
+      LOG(PDA_LOG,LOG_DEBUG, "process_pda_packet_msg_long_time strptime failed\n");
+  } else {
+      LOG(PDA_LOG,LOG_DEBUG, "process_pda_packet_msg_long_time strptime %s\n",
+               asctime_r(&_aqualink_data->tm,result));
+    if (real_wday != _aqualink_data->tm.tm_wday) {
+        LOG(PDA_LOG,LOG_INFO, "Day of the week incorrect - request time set\n");
+      aq_programmer(AQ_SET_TIME, NULL, _aqualink_data);
+    } else {
+      time_t display_time = mktime(&_aqualink_data->tm);
+      if (abs(difftime(display_time, now)) > 120) {
+          LOG(PDA_LOG,LOG_INFO, "Time incorrect - request time set\n");
+        aq_programmer(AQ_SET_TIME, NULL, _aqualink_data);
+      }
+    }
+  }
 }
 
 void process_pda_packet_msg_long_equipment_control(const char *msg)
@@ -526,6 +550,34 @@ void process_pda_packet_msg_long_level_aux_device(const char *msg)
 #endif
 }
 
+void process_pda_packet_msg_long_set_time(int index, const char *msg)
+{
+  // Line 0 =     SET TIME
+  // Line 1 =
+  // Line 2 =   08/16/05 TUE
+  // Line 3 =      8:29 PM
+  // Line 4 =
+  // Line 5 =
+  // Line 6 = Use ARROW KEYS
+  // Line 7 = to set value.
+  // Line 8 = Press SELECT
+  // Line 9 = to continue.
+  if (index == 2) {
+    if (strptime(msg, "%t%D %a", &_aqualink_data->tm) == NULL) {
+      LOG(PDA_LOG,LOG_ERR, "process_pda_packet_msg_long_set_time(%d,%.*s) failed\n",
+                 index, AQ_MSGLEN, msg);
+    }
+  } else if  (index == 3) {
+    if (strptime(msg, "%t%I:%M %p", &_aqualink_data->tm) == NULL) {
+      LOG(PDA_LOG,LOG_ERR, "process_pda_packet_msg_long_set_time(%d,%.*s) failed\n",
+                 index, AQ_MSGLEN, msg);
+    }
+    char result[30];
+    LOG(PDA_LOG,LOG_DEBUG, "process_pda_packet_msg_long_set_time  %s\n",
+               asctime_r(&_aqualink_data->tm,result));
+  }
+}
+
 void process_pda_freeze_protect_devices()
 {
   //  PDA Line 0 =  FREEZE PROTECT
@@ -559,6 +611,7 @@ bool process_pda_packet(unsigned char *packet, int length)
   bool rtn = true;
   int i;
   char *msg;
+  int index = -1;
   //static bool init = false;
 
   if (getLogLevel(PDA_LOG) == LOG_DEBUG) {
@@ -646,7 +699,7 @@ bool process_pda_packet(unsigned char *packet, int length)
     //printf ("menu type %d\n",pda_m_type());
 
     msg = (char *)packet + PKT_DATA + 1;
-
+    index = packet[PKT_DATA] & 0xF;
     //strcpy(_aqualink_data->last_message, msg);
 
     if (packet[PKT_DATA] == 0x82)
@@ -686,6 +739,9 @@ bool process_pda_packet(unsigned char *packet, int length)
         break;
         case PM_AUX_LABEL_DEVICE:
           process_pda_packet_msg_long_level_aux_device(msg);
+        break;
+        case PM_SET_TIME:
+          process_pda_packet_msg_long_set_time(index, msg);
         break;
         //case PM_FW_VERSION:
         //  process_pda_packet_msg_long_FW_version(msg);

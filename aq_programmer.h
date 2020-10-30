@@ -129,7 +129,7 @@ const char *ptypeName(program_type type);
 const char *programtypeDisplayName(program_type type);
 
 // These shouldn't be here, but just for the PDA AQ PROGRAMMER
-void send_cmd(unsigned char cmd);
+bool send_cmd(unsigned char cmd);
 bool push_aq_cmd(unsigned char cmd);
 void waitForSingleThreadOrTerminate(struct programmingThreadCtrl *threadCtrl, program_type type);
 void cleanAndTerminateThread(struct programmingThreadCtrl *threadCtrl);

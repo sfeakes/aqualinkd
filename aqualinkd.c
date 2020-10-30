@@ -1461,6 +1461,9 @@ void main_loop()
     _aqualink_data.swg_ppm = 0;
   }
 
+  pthread_mutex_init(&_aqualink_data.mutex, NULL);
+  pthread_cond_init(&_aqualink_data.thread_finished_cond, NULL);
+
   if (!start_net_services(&mgr, &_aqualink_data))
   {
     LOG(AQUA_LOG,LOG_ERR, "Can not start webserver on port %s.\n", _aqconfig_.socket_port);

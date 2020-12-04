@@ -696,6 +696,7 @@ uriAtype action_URI(netRequest from, const char *URI, int uri_length, float valu
   char *ri1 = (char *)URI;
   char *ri2 = NULL;
   char *ri3 = NULL;
+  char labelBuff[AQ_MSGLEN];
 
   LOG(NET_LOG,LOG_DEBUG, "%s: URI Request '%.*s': value %.2f\n", actionName[from], uri_length, URI, value);
 
@@ -821,9 +822,10 @@ uriAtype action_URI(netRequest from, const char *URI, int uri_length, float valu
   // Action Light program.
   } else if ((ri3 != NULL && ((strncasecmp(ri2, "color", 5) == 0) || (strncasecmp(ri2, "program", 7) == 0)) && (strncasecmp(ri3, "set", 3) == 0))) {
     found = false;
+    snprintf(labelBuff, sizeof(labelBuff), "%.*s", ri2-ri1-1, ri1);
     for (i=0; i < _aqualink_data->total_buttons; i++) {
-      if (strncmp(ri1, _aqualink_data->aqbuttons[i].name, strlen(_aqualink_data->aqbuttons[i].name)) == 0 ||
-          strncmp(ri1, _aqualink_data->aqbuttons[i].label, strlen(_aqualink_data->aqbuttons[i].label)) == 0)
+      if (strcmp(labelBuff, _aqualink_data->aqbuttons[i].name) == 0 ||
+          strcmp(labelBuff, _aqualink_data->aqbuttons[i].label) == 0)
       {
         char buf[5];
         found = true;
@@ -869,8 +871,10 @@ uriAtype action_URI(netRequest from, const char *URI, int uri_length, float valu
         }
       }
     } else { // Pump by button name
+      snprintf(labelBuff, sizeof(labelBuff), "%.*s", ri2-ri1-1, ri1);
+
       for (i=0; i < _aqualink_data->total_buttons ; i++) {
-        if (strncmp(ri1, _aqualink_data->aqbuttons[i].name, strlen(_aqualink_data->aqbuttons[i].name)) == 0 ){
+        if (strcmp(labelBuff, _aqualink_data->aqbuttons[i].name) == 0 ){
           int pi;
           for (pi=0; pi < _aqualink_data->num_pumps; pi++) {
             if (_aqualink_data->pumps[pi].button == &_aqualink_data->aqbuttons[i]) {
@@ -912,9 +916,10 @@ uriAtype action_URI(netRequest from, const char *URI, int uri_length, float valu
     // Must be a switch on / off
     rtn = uActioned;
     found = false;
+    snprintf(labelBuff, sizeof(labelBuff), "%.*s", ri2-ri1-1, ri1);
     for (i=0; i < _aqualink_data->total_buttons; i++) {
-      if (strncmp(ri1, _aqualink_data->aqbuttons[i].name, strlen(_aqualink_data->aqbuttons[i].name)) == 0 ||
-          strncmp(ri1, _aqualink_data->aqbuttons[i].label, strlen(_aqualink_data->aqbuttons[i].label)) == 0)
+      if (strcmp(labelBuff, _aqualink_data->aqbuttons[i].name) == 0 ||
+          strcmp(labelBuff, _aqualink_data->aqbuttons[i].label) == 0)
       {
         found = true;
         //LOG(NET_LOG,LOG_INFO, "%s: MATCH %s to topic %.*s\n",from,_aqualink_data->aqbuttons[i].name,uri_length, URI);
